@@ -9,20 +9,6 @@
 - `Node.js` and `npm` installed
 - A local copy of the `shopping-site` repository
 
-## Installation
-
-1. Clone the `shopping-site` repository to your local machine:
-   ```bash
-   git clone https://github.com/rayhuang2006/shopping-site.git
-   ```
-
-2. Save the path of the `shopping-site` directory to your `~/.shopsite_config` file:
-   ```bash
-   ./shopsite
-   ```
-
-3. The script will prompt you for the path to the `shopping-site` directory if it is not already configured. Once provided, the path will be saved for future use.
-
 ## Usage
 
 ### Start Services
@@ -104,5 +90,4 @@ The script uses a configuration file located at `~/.shopsite_config` to store th
 
 ## Troubleshooting
 
-- Make sure the `shopping-site` repository is cloned and the path is correctly configured in `~/.shopsite_config`.
 - Ensure that `Node.js`, `npm`, and `screen` are installed on your system.
