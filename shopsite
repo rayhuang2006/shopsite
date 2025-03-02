@@ -1,0 +1,161 @@
+#!/bin/bash
+
+CONFIG_FILE="$HOME/.shopsite_config"
+FILE_DIR=""
+
+if [ -f "$CONFIG_FILE" ]; then
+    FILE_DIR=$(cat "$CONFIG_FILE")
+fi
+
+if [ -z "$FILE_DIR" ]; then
+    echo "Before starting, please make sure that you have cloned my shopping-site repository."
+    echo "You can find it here:"
+    echo "https://github.com/rayhuang2006/shopping-site"
+    echo "After cloning the repository, please enter the full path to the shopping-site directory(e.g. /home/user/shopping-site): "
+    read -r FILE_DIR
+    echo "$FILE_DIR" > "$CONFIG_FILE"
+    echo "FILE_DIR has been saved."
+    echo "you can read the file by using 'cat ~/.shopsite_config'"
+fi
+
+FRONTEND_SESSION="shopsite-frontend"
+BACKEND_SESSION="shopsite-backend"
+
+FRONTEND_DIR="$FILE_DIR/frontend"
+BACKEND_DIR="$FILE_DIR/backend"
+FRONTEND_LOG="$FILE_DIR/frontend.log"
+BACKEND_LOG="$FILE_DIR/backend.log"
+
+start() {
+    if [[ $1 == "--f" ]]; then
+        echo "Starting frontend..."
+        if screen -list | grep -q "$FRONTEND_SESSION"; then
+            echo "Frontend is already running."
+        else
+            screen -dmS "$FRONTEND_SESSION" bash -c "cd $FRONTEND_DIR && npm run serve > $FRONTEND_LOG 2>&1"
+            echo "Frontend started in screen: $FRONTEND_SESSION"
+        fi
+    elif [[ $1 == "--b" ]]; then
+        echo "Starting backend..."
+        if screen -list | grep -q "$BACKEND_SESSION"; then
+            echo "Backend is already running."
+        else
+            screen -dmS "$BACKEND_SESSION" bash -c "cd $BACKEND_DIR && npm start > $BACKEND_LOG 2>&1"
+            echo "Backend started in screen: $BACKEND_SESSION"
+        fi
+    else
+        echo "Starting all services..."
+        start --f
+        start --b
+    fi
+}
+
+stop() {
+    if [[ $1 == "--f" ]]; then
+        echo "Stopping frontend..."
+        screen -S "$FRONTEND_SESSION" -X quit
+        echo "Frontend stopped."
+    elif [[ $1 == "--b" ]]; then
+        echo "Stopping backend..."
+        screen -S "$BACKEND_SESSION" -X quit
+        echo "Backend stopped."
+    else
+        echo "Stopping all services..."
+        stop --f
+        stop --b
+    fi
+}
+
+status() {
+    frontend_status="Stopped"
+    backend_status="Stopped"
+
+    if screen -list | grep -q "$FRONTEND_SESSION"; then
+        frontend_status="Running"
+    fi
+
+    if screen -list | grep -q "$BACKEND_SESSION"; then
+        backend_status="Running"
+    fi
+
+    if [[ $1 == "--b" ]]; then
+        echo "Backend: $backend_status"
+    elif [[ $1 == "--f" ]]; then
+        echo "Frontend: $frontend_status"
+    else
+        echo "Frontend: $frontend_status"
+        echo "Backend: $backend_status"
+    fi
+}
+
+restart() {
+    if [[ $1 == "--b" ]]; then
+        echo "Restarting backend..."
+        screen -S "$BACKEND_SESSION" -X quit
+        sleep 1
+        screen -dmS "$BACKEND_SESSION" bash -c "cd $BACKEND_DIR && npm start > $BACKEND_LOG 2>&1"
+        echo "Backend restarted."
+    elif [[ $1 == "--f" ]]; then
+        echo "Restarting frontend..."
+        screen -S "$FRONTEND_SESSION" -X quit
+        sleep 1
+        screen -dmS "$FRONTEND_SESSION" bash -c "cd $FRONTEND_DIR && npm run serve > $FRONTEND_LOG 2>&1"
+        echo "Frontend restarted."
+    else
+        echo "Restarting all services..."
+        stop
+        sleep 1
+        start
+    fi
+}
+
+log() {
+    if [[ $1 == "--f" ]]; then
+        echo "Displaying frontend log..."
+        tail -f "$FRONTEND_LOG"
+    elif [[ $1 == "--b" ]]; then
+        echo "Displaying backend log..."
+        tail -f "$BACKEND_LOG"
+    else
+        echo "Please specify either --f for frontend or --b for backend logs."
+    fi
+}
+
+help_menu() {
+    echo "Usage: shopsite [command] [options]"
+    echo ""
+    echo "Commands:"
+    echo "  -on        Start frontend and/or backend in separate screen sessions"
+    echo "    --f      Start only frontend"
+    echo "    --b      Start only backend"
+    echo "  -off       Stop frontend and/or backend sessions"
+    echo "    --f      Stop only frontend"
+    echo "    --b      Stop only backend"
+    echo "  -st        Show the running status of both services"
+    echo "    --f      Show only frontend status"
+    echo "    --b      Show only backend status"
+    echo "  -re        Restart both services"
+    echo "    --f      Restart only frontend"
+    echo "    --b      Restart only backend"
+    echo "  -log       View logs"
+    echo "    --f      View frontend log"
+    echo "    --b      View backend log"
+    echo "  help, -h   Show this help message"
+}
+
+
+if [[ $# -eq 0 ]]; then
+    echo "Use 'shopsite help' or 'shopsite -h' to see available commands."
+    exit 1
+fi
+
+case "$1" in
+    -on) start "$2" ;;
+    -off) stop "$2" ;;
+    -st) status "$2" ;;
+    -re) restart "$2" ;;
+    -log) log "$2" ;;
+    help|-h) help_menu ;;
+    *) echo "Invalid command. Use 'shopsite help' to see available commands." ;;
+esac
+
