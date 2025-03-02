@@ -1,6 +1,6 @@
 # Shopsite Tool
 
-`shopsite` is a command-line tool to manage the frontend and backend services for (my shopping-site repository)[https://github.com/rayhuang2006/shopping-site]. This script allows you to start, stop, check the status, restart, and view logs for both frontend and backend services that run in separate screen sessions.
+`shopsite` is a command-line tool to manage the frontend and backend services for [my shopping-site repository](https://github.com/rayhuang2006/shopping-site). This script allows you to start, stop, check the status, restart, and view logs for both frontend and backend services that run in separate screen sessions.
 
 ## Requirements
 
